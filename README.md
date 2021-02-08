@@ -1,36 +1,33 @@
-# cordova-plugin-facebook4
+# cordova-plugin-facebook-connect
 
-> Use Facebook SDK version 4 in Cordova projects
+> Use Facebook SDK in Cordova projects
+
+## Table of contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Sample repo](#sample-repo)
+- [Compatibility](#compatibility)
+- [Facebook SDK](#facebook-sdk)
+- [API](#api)
 
 ## Installation
 
-See npm package for versions - https://www.npmjs.com/package/cordova-plugin-facebook4
+See npm package for versions - https://www.npmjs.com/package/cordova-plugin-facebook-connect
 
 Make sure you've registered your Facebook app with Facebook and have an `APP_ID` [https://developers.facebook.com/apps](https://developers.facebook.com/apps).
 
 ```bash
-$ cordova plugin add cordova-plugin-facebook4 --save --variable APP_ID="123456789" --variable APP_NAME="myApplication"
+$ cordova plugin add cordova-plugin-facebook-connect --save --variable APP_ID="123456789" --variable APP_NAME="myApplication"
 ```
+
+As the `APP_NAME` is used as a string in XML files, if your app name contains any special characters like "&", make sure you escape them, e.g. "&amp;".
 
 If you need to change your `APP_ID` after installation, it's recommended that you remove and then re-add the plugin as above. Note that changes to the `APP_ID` value in your `config.xml` file will *not* be propagated to the individual platform builds.
 
 IMPORTANT: This plugin works as is with cordova-ios 5 but if you use earlier version of cordova-ios then you need to add the code in the following comment to your CordovaLib/Classes/Public/CDVAppDelegate.m file which was added to your project as part of the cordova-ios ios platform template: https://github.com/apache/cordova-ios/issues/476#issuecomment-460907247
 
-## Usage
-
-This is a fork of the [official plugin for Facebook](https://github.com/Wizcorp/phonegap-facebook-plugin/) in Apache Cordova that implements the latest Facebook SDK. Unless noted, this is a drop-in replacement. You don't have to replace your client code.
-
-The Facebook plugin for [Apache Cordova](http://cordova.apache.org/) allows you to use the same JavaScript code in your Cordova application as you use in your web application. However, unlike in the browser, the Cordova application will use the native Facebook app to perform Single Sign On for the user.  If this is not possible then the sign on will degrade gracefully using the standard dialog based authentication.
-
-## Compatibility
-
-  * Cordova >= 5.0.0
-  * cordova-android >= 4.0
-  * cordova-ios >= 3.8
-  * cordova-browser >= 3.6
-  * Phonegap build (use phonegap-version >= cli-5.2.0, android-minSdkVersion>=15, and android-build-tool=gradle), see [example here](https://github.com/yoav-zibin/phonegap-tictactoe/blob/gh-pages/www/config.xml)
-
-#### Install Guides
+### Installation Guides
 
 - [iOS Guide](docs/ios/README.md)
 
@@ -39,6 +36,23 @@ The Facebook plugin for [Apache Cordova](http://cordova.apache.org/) allows you 
 - [Browser Guide](docs/browser/README.md)
 
 - [Troubleshooting Guide | F.A.Q.](docs/TROUBLESHOOTING.md)
+
+## Usage
+
+This is a fork of the [official plugin for Facebook](https://github.com/Wizcorp/phonegap-facebook-plugin/) in Apache Cordova that implements the latest Facebook SDK. Unless noted, this is a drop-in replacement. You don't have to replace your client code.
+
+The Facebook plugin for [Apache Cordova](http://cordova.apache.org/) allows you to use the same JavaScript code in your Cordova application as you use in your web application. However, unlike in the browser, the Cordova application will use the native Facebook app to perform Single Sign On for the user.  If this is not possible then the sign on will degrade gracefully using the standard dialog based authentication.
+
+## Sample Repo
+
+If you are looking to test the plugin, would like to reproduce a bug or build issues, there is a demo project for such purpose: [cordova-plugin-facebook-connect-lab](https://github.com/cordova-plugin-facebook-connect/cordova-plugin-facebook-connect-lab).
+
+## Compatibility
+
+  * Cordova >= 5.0.0
+  * cordova-android >= 4.0
+  * cordova-ios >= 3.8
+  * cordova-browser >= 3.6
 
 ## Facebook SDK
 
@@ -80,7 +94,7 @@ Failure function returns an error String.
 
 `facebookConnectPlugin.logout(Function success, Function failure)`
 
-### Check permissions (iOS only)
+### Check permissions
 
 `facebookConnectPlugin.checkHasCorrectPermissions(Array strings of permissions, Function success, Function failure)`
 
@@ -139,6 +153,7 @@ Game request:
 		data: data,
 		title: title,
 		actionType: 'askfor',
+		objectID: 'YOUR_OBJECT_ID', 
 		filters: 'app_non_users'
 	}
 
@@ -151,30 +166,6 @@ Send Dialog:
 		description: "The site I told you about",
 		picture: "http://example.com/image.png"
 	}
-	
-Share dialog - Open Graph Story: (currently only fully available on Android, iOS currently does not support action_properties)
-
-	{
-		var obj = {};
-	
-    	obj['og:type'] = 'objectname';
-    	obj['og:title'] = 'Some title';
-    	obj['og:url'] = 'https://en.wikipedia.org/wiki/Main_Page';
-    	obj['og:description'] = 'Some description.';
-
-    	var ap = {};
-    	
-    	ap['expires_in'] = 3600;
-    	
-    	var options = {
-    		method: 'share_open_graph', // Required
-        	action: 'actionname', // Required
-        	action_properties: JSON.stringify(ap), // Optional
-        	object: JSON.stringify(obj) // Required
-    	};
-	}
-	
-In case you want to use custom actions/objects, just prepend the app namespace to the name (E.g: ` obj['og:type'] = 'appnamespace:objectname' `, `action: 'appnamespace:actionname'`. The namespace of a Facebook app is found on the Settings page. 
 
 
 For options information see: [Facebook share dialog documentation](https://developers.facebook.com/docs/sharing/reference/share-dialog) [Facebook send dialog documentation](https://developers.facebook.com/docs/sharing/reference/send-dialog)
@@ -184,13 +175,15 @@ Failure function returns an error String.
 
 ### The Graph API
 
-`facebookConnectPlugin.api(String requestPath, Array permissions, Function success, Function failure)`
+`facebookConnectPlugin.api(String requestPath, Array permissions, String httpMethod, Function success, Function failure)`
 
 Allows access to the Facebook Graph API. This API allows for additional permission because, unlike login, the Graph API can accept multiple permissions.
 
 Example permissions:
 
 	["public_profile", "user_birthday"]
+
+`httpMethod` is optional and defaults to "GET".
 
 Success function returns an Object.
 
@@ -204,7 +197,7 @@ For more information see:
 - Graph Explorer - [https://developers.facebook.com/tools/explorer](https://developers.facebook.com/tools/explorer)
 - Graph API - [https://developers.facebook.com/docs/graph-api/](https://developers.facebook.com/docs/graph-api/)
 
-# Events
+### Events
 
 App events allow you to understand the makeup of users engaging with your app, measure the performance of your Facebook mobile app ads, and reach specific sets of your users with Facebook mobile app ads.
 
@@ -216,7 +209,7 @@ Activation events are automatically tracked for you in the plugin.
 
 Events are listed on the [insights page](https://www.facebook.com/insights/)
 
-### Log an Event
+#### Log an Event
 
 `logEvent(String name, Object params, Number valueToSum, Function success, Function failure)`
 
@@ -224,13 +217,13 @@ Events are listed on the [insights page](https://www.facebook.com/insights/)
 - **params**, extra data to log with the event (is optional)
 - **valueToSum**, a property which is an arbitrary number that can represent any value (e.g., a price or a quantity). When reported, all of the valueToSum properties will be summed together. For example, if 10 people each purchased one item that cost $10 (and passed in valueToSum) then they would be summed to report a number of $100. (is optional)
 
-### Log a Purchase
+#### Log a Purchase
 
-`logPurchase(Number value, String currency, Function success, Function failure)`
+`logPurchase(Number value, String currency, Object params, Function success, Function failure)`
 
-**NOTE:** Both parameters are required. The currency specification is expected to be an [ISO 4217 currency code](http://en.wikipedia.org/wiki/ISO_4217)
+**NOTE:** Both `value` and `currency` are required. The currency specification is expected to be an [ISO 4217 currency code](http://en.wikipedia.org/wiki/ISO_4217). `params` is optional.
 
-### Manually log activation events
+#### Manually log activation events
 
 `activateApp(Function success, Function failure)`
 
@@ -316,8 +309,8 @@ facebookConnectPlugin.showDialog({
     picture:'https://www.google.co.jp/logos/doodles/2014/doodle-4-google-2014-japan-winner-5109465267306496.2-hp.png',
     name:'Test Post',
     message:'First photo post',
-    caption: 'Testing using phonegap plugin',
-    description: 'Posting photo using phonegap facebook plugin'
+    caption: 'Testing using Cordova plugin',
+    description: 'Posting photo using Cordova Facebook plugin'
   }, function (response) {
     console.log(response)
   }, function (response) {
@@ -326,14 +319,62 @@ facebookConnectPlugin.showDialog({
 );
 ```
 
-### Hybrid Mobile App Events
+## Hybrid Mobile App Events
 
 Starting from Facebook SDK v4.34 for both iOS and Android, there is a new way of converting pixel events into mobile app events. For more information: [https://developers.facebook.com/docs/app-events/hybrid-app-events/](https://developers.facebook.com/docs/app-events/hybrid-app-events/)
 
-In order to enable this feature in your cordova app, please set the *FACEBOOK_HYBRID_APP_EVENTS* variable to "true"(default is false):
+In order to enable this feature in your Cordova app, please set the *FACEBOOK_HYBRID_APP_EVENTS* variable to "true" (default is false):
+
 ```bash
-$ cordova plugin add cordova-plugin-facebook4 --save --variable APP_ID="123456789" --variable APP_NAME="myApplication" --variable FACEBOOK_HYBRID_APP_EVENTS="true"
+$ cordova plugin add cordova-plugin-facebook-connect --save --variable APP_ID="123456789" --variable APP_NAME="myApplication" --variable FACEBOOK_HYBRID_APP_EVENTS="true"
 ```
+
 Please check [this repo](https://github.com/msencer/fb_hybrid_app_events_sample) for an example app using this feature.
 
-**NOTE(iOS):** This feature only works with WKWebView so until [Cordova iOS 5 is relased](https://cordova.apache.org/news/2018/08/01/future-cordova-ios-webview.html), an additional plugin (e.g cordova-plugin-wkwebview-engine) is needed.
+**NOTE(iOS):** This feature only works with WKWebView so if using an old version of Cordova, an additional plugin (e.g cordova-plugin-wkwebview-engine) is needed.
+
+## GDPR Compliance
+
+This Plugin supports Facebook's [GDPR Compliance](https://developers.facebook.com/docs/app-events/gdpr-compliance/) **Delaying Automatic Event Collection**.
+
+In order to enable this feature in your Cordova app, please set the *FACEBOOK_AUTO_LOG_APP_EVENTS* variable to "false" (default is true).
+
+```bash
+$ cordova plugin add cordova-plugin-facebook-connect --save --variable APP_ID="123456789" --variable APP_NAME="myApplication" --variable FACEBOOK_AUTO_LOG_APP_EVENTS="false"
+```
+
+Then, re-enable auto-logging after an end User provides consent by calling the `setAutoLogAppEventsEnabled` method and set it to true.
+
+```js
+facebookConnectPlugin.setAutoLogAppEventsEnabled(true, function() {
+  console.log('setAutoLogAppEventsEnabled success');
+}, function() {
+  console.error('setAutoLogAppEventsEnabled failure');
+});
+```
+
+## Collection of Advertiser IDs
+
+To disable collection of `advertiser-id`, please set the *FACEBOOK_ADVERTISER_ID_COLLECTION* variable to "false" (default is true).
+
+```bash
+$ cordova plugin add cordova-plugin-facebook-connect --save --variable APP_ID="123456789" --variable APP_NAME="myApplication" --variable FACEBOOK_ADVERTISER_ID_COLLECTION="false"
+```
+
+Then, re-enable collection by calling the `setAdvertiserIDCollectionEnabled` method and set it to true.
+
+```js
+facebookConnectPlugin.setAdvertiserIDCollectionEnabled(true, function() {
+  console.log('setAdvertiserIDCollectionEnabled success');
+}, function() {
+  console.error('setAdvertiserIDCollectionEnabled failure');
+});
+```
+
+## URL Suffixes for Multiple Apps
+
+When using the same Facebook app with multiple iOS apps, use the *FACEBOOK_URL_SCHEME_SUFFIX* variable to set a unique URL Suffix for each app. This ensures that Facebook redirects back to the correct app after closing the login window.
+
+```bash
+$ cordova plugin add cordova-plugin-facebook-connect --save --variable APP_ID="123456789" --variable APP_NAME="myApplication" --variable FACEBOOK_URL_SCHEME_SUFFIX="mysecondapp"
+```

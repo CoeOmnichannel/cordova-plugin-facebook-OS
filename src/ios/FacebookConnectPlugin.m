@@ -40,6 +40,10 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(applicationDidBecomeActive:)
                                                  name:UIApplicationDidBecomeActiveNotification object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self 
+                                         selector:@selector(handleOpenURLWithAppSourceAndAnnotation:) 
+                                             name:CDVPluginHandleOpenURLWithAppSourceAndAnnotationNotification object:nil];
 }
 
 - (void) applicationDidFinishLaunching:(NSNotification *) notification {
@@ -53,11 +57,20 @@
 }
 
 - (void) applicationDidBecomeActive:(NSNotification *) notification {
-    [FBSDKAppEvents activateApp];
+    if (FBSDKSettings.isAutoLogAppEventsEnabled) {
+        [FBSDKAppEvents activateApp];
+    }
     if (self.applicationWasActivated == NO) {
         self.applicationWasActivated = YES;
         [self enableHybridAppEvents];
     }
+}
+
+- (void) handleOpenURLWithAppSourceAndAnnotation:(NSNotification *) notification {
+    NSMutableDictionary * options = [notification object];
+    NSURL* url = options[@"url"];
+
+    [[FBSDKApplicationDelegate sharedInstance] application:[UIApplication sharedApplication] openURL:url options:options];
 }
 
 #pragma mark - Cordova commands
@@ -80,6 +93,20 @@
                         @"Session not open."];
     }
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)setAutoLogAppEventsEnabled:(CDVInvokedUrlCommand *)command {
+    BOOL enabled = [command.arguments objectAtIndex:0];
+    [FBSDKSettings setAutoLogAppEventsEnabled:enabled];
+    CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:res callbackId:command.callbackId];
+}
+
+- (void)setAdvertiserIDCollectionEnabled:(CDVInvokedUrlCommand *)command {
+    BOOL enabled = [command.arguments objectAtIndex:0];
+    [FBSDKSettings setAdvertiserIDCollectionEnabled:enabled];
+    CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:res callbackId:command.callbackId];
 }
 
 - (void)logEvent:(CDVInvokedUrlCommand *)command {
@@ -121,22 +148,26 @@
 }
 
 - (void)logPurchase:(CDVInvokedUrlCommand *)command {
-    /*
-     While calls to logEvent can be made to register purchase events,
-     there is a helper method that explicitly takes a currency indicator.
-     */
-    CDVPluginResult *res;
-    if ([command.arguments count] != 2) {
-        res = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Invalid arguments"];
+    if ([command.arguments count] < 2 || [command.arguments count] > 3 ) {
+        CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Invalid arguments"];
         [self.commandDelegate sendPluginResult:res callbackId:command.callbackId];
         return;
     }
-    double value = [[command.arguments objectAtIndex:0] doubleValue];
-    NSString *currency = [command.arguments objectAtIndex:1];
-    [FBSDKAppEvents logPurchase:value currency:currency];
 
-    res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [self.commandDelegate sendPluginResult:res callbackId:command.callbackId];
+    [self.commandDelegate runInBackground:^{
+        double value = [[command.arguments objectAtIndex:0] doubleValue];
+        NSString *currency = [command.arguments objectAtIndex:1];
+        
+        if ([command.arguments count] == 2 ) {
+            [FBSDKAppEvents logPurchase:value currency:currency];
+        } else if ([command.arguments count] >= 3) {
+            NSDictionary *params = [command.arguments objectAtIndex:2];
+            [FBSDKAppEvents logPurchase:value currency:currency parameters:params];
+        }
+
+        CDVPluginResult *res = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self.commandDelegate sendPluginResult:res callbackId:command.callbackId];
+    }];
 }
 
 - (void)login:(CDVInvokedUrlCommand *)command {
@@ -309,41 +340,6 @@
         [dialog show];
         return;
     }
-    else if ( [method isEqualToString:@"share_open_graph"] ) {
-        if(!params[@"action"] || !params[@"object"]) {
-            NSLog(@"No action or object defined");
-            return;
-        }
-
-        //Get object JSON
-        NSError *jsonError;
-        NSData *objectData = [params[@"object"] dataUsingEncoding:NSUTF8StringEncoding];
-        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:objectData
-                                                             options:NSJSONReadingMutableContainers
-                                                               error:&jsonError];
-
-        if(jsonError) {
-            NSLog(@"There was an error parsing your 'object' JSON string");
-        } else {
-            FBSDKShareOpenGraphObject *object = [FBSDKShareOpenGraphObject objectWithProperties:json];
-            if(!json[@"og:type"]) {
-                NSLog(@"No 'og:type' encountered in the object JSON. Please provide an Open Graph object type.");
-                return;
-            }
-            NSString *objectType = json[@"og:type"];
-            objectType = [objectType stringByReplacingOccurrencesOfString:@"."
-                                                               withString:@":"];
-            FBSDKShareOpenGraphAction *action = [FBSDKShareOpenGraphAction actionWithType:params[@"action"] object:object key:objectType];
-
-            FBSDKShareOpenGraphContent *content = [[FBSDKShareOpenGraphContent alloc] init];
-            content.action = action;
-            content.previewPropertyName = objectType;
-            [FBSDKShareDialog showFromViewController:self.topMostController
-                                         withContent:content
-                                            delegate:nil];
-        }
-        return;
-    }
     else if ([method isEqualToString:@"apprequests"]) {
         FBSDKGameRequestDialog *dialog = [[FBSDKGameRequestDialog alloc] init];
         dialog.delegate = self;
@@ -357,17 +353,15 @@
         FBSDKGameRequestContent *content = [[FBSDKGameRequestContent alloc] init];
         NSString *actionType = params[@"actionType"];
         if (!actionType) {
-            CDVPluginResult *pluginResult;
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                             messageAsString:@"Cannot show dialog"];
-            return;
-        }
-        if ([[actionType lowercaseString] isEqualToString:@"askfor"]) {
+            NSLog(@"Discarding invalid argument actionType");
+        } else if ([[actionType lowercaseString] isEqualToString:@"askfor"]) {
             content.actionType = FBSDKGameRequestActionTypeAskFor;
         } else if ([[actionType lowercaseString] isEqualToString:@"send"]) {
             content.actionType = FBSDKGameRequestActionTypeSend;
         } else if ([[actionType lowercaseString] isEqualToString:@"turn"]) {
             content.actionType = FBSDKGameRequestActionTypeTurn;
+        } else {
+            NSLog(@"Discarding invalid argument actionType");
         }
 
         NSString *filters = params[@"filters"];
@@ -405,6 +399,11 @@
 
     NSString *graphPath = [command argumentAtIndex:0];
     NSArray *permissionsNeeded = [command argumentAtIndex:1];
+    NSString *requestMethod = nil;
+    if ([command.arguments count] >= 3) {
+        requestMethod = [command argumentAtIndex:2];
+    }
+
     NSSet *currentPermissions = [FBSDKAccessToken currentAccessToken].permissions;
 
     // We will store here the missing permissions that we will have to request
@@ -437,7 +436,7 @@
     };
 
     NSLog(@"Graph Path = %@", graphPath);
-    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:graphPath];
+    FBSDKGraphRequest *request = [[FBSDKGraphRequest alloc] initWithGraphPath:graphPath parameters:nil HTTPMethod:requestMethod];
 
     // If we have permissions to request
     if ([permissions count] == 0){
@@ -504,6 +503,8 @@
 - (void) activateApp:(CDVInvokedUrlCommand *)command
 {
     [FBSDKAppEvents activateApp];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 #pragma mark - Utility methods
