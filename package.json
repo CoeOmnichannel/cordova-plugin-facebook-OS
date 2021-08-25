@@ -1,43 +1,19 @@
 {
-  "_from": "cordova-plugin-facebook4-lw",
-  "_id": "cordova-plugin-facebook4-lw@6.2.0",
-  "_inBundle": false,
-  "_integrity": "sha512-4lHsxhRQuKjXlXqYv4dxNauAuqK7btyO6BvWJ/XA9OYJqUMK78MxhfpBWWn8X1N+mDeUJLFLudvU694YKRao0w==",
-  "_location": "/cordova-plugin-facebook4-lw",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "cordova-plugin-facebook4-lw",
-    "name": "cordova-plugin-facebook4-lw",
-    "escapedName": "cordova-plugin-facebook4-lw",
-    "rawSpec": "",
-    "saveSpec": null,
-    "fetchSpec": "latest"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/cordova-plugin-facebook4-lw/-/cordova-plugin-facebook4-lw-6.2.0.tgz",
-  "_shasum": "51a54a821643696d3ebeefe837901ef7b8454af7",
-  "_spec": "cordova-plugin-facebook4-lw",
-  "_where": "C:\\Users\\fabio.vaz\\source\\repos",
-  "bugs": {
-    "url": "https://github.com/jeduan/cordova-plugin-facebook4/issues"
-  },
-  "bundleDependencies": false,
+  "name": "cordova-plugin-facebook-connect",
+  "version": "3.0.0",
+  "description": "Cordova Facebook SDK Plugin",
   "cordova": {
-    "id": "cordova-plugin-facebook4-lw",
+    "id": "cordova-plugin-facebook-connect",
     "platforms": [
       "android",
       "ios",
       "browser"
     ]
   },
-  "deprecated": false,
-  "description": "Cordova Facebook SDK 4 Plugin",
-  "homepage": "https://github.com/jeduan/cordova-plugin-facebook4#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cordova-plugin-facebook-connect/cordova-plugin-facebook-connect"
+  },
   "keywords": [
     "cordova",
     "facebook",
@@ -49,11 +25,5 @@
     "social",
     "sharing"
   ],
-  "license": "Apache-2.0",
-  "name": "cordova-plugin-facebook4-lw",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jeduan/cordova-plugin-facebook4.git"
-  },
-  "version": "6.2.0"
+  "license": "Apache-2.0"
 }
