@@ -138,8 +138,9 @@
             <dict>
               <key>CFBundleURLSchemes</key>
               <array>
-                <string>fb$APP_IDFACEBOOK_URL_SCHEME_SUFFIX_PLACEHOLDER</string>
-                <string>OTHER_APP_SCHEMES_PLACEHOLDER</string>
+                <!--<string>fb$APP_IDFACEBOOK_URL_SCHEME_SUFFIX_PLACEHOLDER</string>
+                <string>OTHER_APP_SCHEMES_PLACEHOLDER</string>-->
+                <string>fb$APP_ID</string>
               </array>
             </dict>
           </array>
