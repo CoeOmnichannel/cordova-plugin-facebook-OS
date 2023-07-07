@@ -114,6 +114,10 @@
             <string>$APP_ID</string>
         </config-file>
 
+        <config-file target="*-Info.plist" parent="FacebookClientToken">
+            <string>$CLIENT_TOKEN</string>
+        </config-file>
+
         <config-file target="*-Info.plist" parent="FacebookDisplayName">
             <string>$APP_NAME</string>
         </config-file>
