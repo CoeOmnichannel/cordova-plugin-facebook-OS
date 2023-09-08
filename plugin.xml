@@ -201,6 +201,7 @@
                 <pod name="FBSDKCoreKit" spec="$FACEBOOK_IOS_SDK_VERSION"/>
                 <pod name="FBSDKLoginKit" spec="$FACEBOOK_IOS_SDK_VERSION"/>
                 <pod name="FBSDKShareKit" spec="$FACEBOOK_IOS_SDK_VERSION"/>
+                <pod name="FBSDKGamingServicesKit" spec="$FACEBOOK_IOS_SDK_VERSION"/>                    
             </pods>
         </podspec>
 
